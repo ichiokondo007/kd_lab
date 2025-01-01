@@ -82,15 +82,15 @@ const DashboardLayout = ({ children, currentPath = '/' }: DashboardLayoutProps) 
               </button>
               <button
                 onClick={() => handleNavigate('/top')}
-                className="ml-4 flex items-center"
+                className="ml-3 flex items-center"
               >
-                <span className="text-xl font-semibold">KD Lab</span>
+                <span className="text-3xl font-bold font-montserrat">KD.Lab Site</span>
               </button>
             </div>
 
             {/* Right side */}
             <div className="flex items-center space-x-4">
-              <div className="flex items-center">
+              <div className="flex items-center text-2xl">
                 <User className="h-5 w-5 mr-2" />
                 <span>{username}</span>
               </div>

@@ -3,20 +3,7 @@ import axios from 'axios';
 const api = axios.create({
 	baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
 	withCredentials: true, // セッションCookieを含めるために必要
-	headers: {
-		'Content-Type': 'application/json',
-	},
 });
-// CSRFトークンを取得する関数
-const getCsrfToken = async () => {
-	try {
-		const response = await api.get('/csrf-token');
-		return response.data.csrfToken;
-	} catch (error) {
-		console.error('Failed to fetch CSRF token:', error);
-		return null;
-	}
-};
 
 // レスポンスインターセプター
 api.interceptors.response.use(
@@ -52,23 +39,31 @@ export interface TopPageResponse {
 
 // APIメソッド
 export const apiClient = {
-	// ログイン
 	login: async (id: string, password: string) => {
-		return api.post<LoginResponse>('/login', { id, password });
+		try {
+			const response = await api.post('/login', { id, password });
+			return response;
+		} catch (error) {
+			throw error;
+		}
 	},
-	// ログアウト
+
+	// ログアウト（CSRFトークン関連の処理を削除）
 	logout: async () => {
-		const csrfToken = await getCsrfToken();
-		return api.post('/logout', {}, {
-			headers: {
-				'X-CSRF-Token': csrfToken
-			}
-		});
+		try {
+			return await api.post('/logout');
+		} catch (error) {
+			throw error;
+		}
 	},
 
 	// トップページデータ取得
 	getTopPageData: async () => {
-		return api.get<TopPageResponse>('/top');
+		try {
+			return await api.get('/top');
+		} catch (error) {
+			throw error;
+		}
 	}
 };
 
