@@ -1,31 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut, Settings, Layout, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import api, { apiClient } from '@/lib/axios';
 
-const DashboardLayout = ({ children, currentPath = '/', onNavigate = (path) => console.log('Navigate to:', path) }) => {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  currentPath?: string;
+}
+
+const DashboardLayout = ({ children, currentPath = '/' }: DashboardLayoutProps) => {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const username = 'John Doe'; // Replace with actual user data
+  const [username, setUsername] = useState('');
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // axios.getをapiClient.getTopPageDataに変更
+        const response = await apiClient.getTopPageData();
+        setUsername(response.data.userName);
+      } catch (error) {
+        console.error('Session error:', error);
+        router.push('/');
+      }
+    };
+
+    fetchUserData();
+  }, [router]);
+
 
   const menuItems = [
-    { 
-      name: 'Whiteboard (YSJ)', 
+    {
+      name: 'Top',
+      icon: Layout,
+      path: '/top'
+    },
+    {
+      name: 'Whiteboard (YSJ)',
       icon: Layout,
       path: '/whiteboard-ysj'
     },
-    { 
-      name: 'Whiteboard (Automerge)', 
+    {
+      name: 'Whiteboard (Automerge)',
       icon: Layout,
       path: '/whiteboard-automerge'
     },
-    { 
-      name: 'Settings', 
+    {
+      name: 'Settings',
       icon: Settings,
       path: '/settings'
     },
   ];
+  const handleLogout = async () => {
+    try {
+      // axios.postをapiClient.logoutに変更
+      await apiClient.logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
-  const handleLogout = () => {
-    // Implement logout logic
-    console.log('Logout clicked');
+  const handleNavigate = (path: string) => {
+    router.push(path);
+    setIsSidebarOpen(false);
   };
 
   return (
@@ -42,8 +80,8 @@ const DashboardLayout = ({ children, currentPath = '/', onNavigate = (path) => c
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <button 
-                onClick={() => onNavigate('/')}
+              <button
+                onClick={() => handleNavigate('/top')}
                 className="ml-4 flex items-center"
               >
                 <span className="text-xl font-semibold">KD Lab</span>
@@ -56,7 +94,7 @@ const DashboardLayout = ({ children, currentPath = '/', onNavigate = (path) => c
                 <User className="h-5 w-5 mr-2" />
                 <span>{username}</span>
               </div>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="p-2 rounded-md hover:bg-gray-700 focus:outline-none"
               >
@@ -69,9 +107,8 @@ const DashboardLayout = ({ children, currentPath = '/', onNavigate = (path) => c
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 transform ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } w-64 bg-white transition-transform duration-300 ease-in-out z-40 shadow-lg`}
+        className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } w-64 bg-white transition-transform duration-300 ease-in-out z-40 shadow-lg`}
       >
         <div style={{ backgroundColor: '#2B2A52' }} className="h-16 flex items-center justify-between px-4">
           <span className="text-white text-xl font-semibold">Menu</span>
@@ -86,10 +123,9 @@ const DashboardLayout = ({ children, currentPath = '/', onNavigate = (path) => c
           {menuItems.map((item, index) => (
             <button
               key={index}
-              onClick={() => onNavigate(item.path)}
-              className={`w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 text-left ${
-                currentPath === item.path ? 'bg-gray-100' : ''
-              }`}
+              onClick={() => handleNavigate(item.path)}
+              className={`w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 text-left ${currentPath === item.path ? 'bg-gray-100' : ''
+                }`}
             >
               <item.icon className="h-5 w-5 mr-3" />
               {item.name}

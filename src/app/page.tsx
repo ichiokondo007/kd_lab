@@ -1,8 +1,8 @@
 "use client";
-
+//login
 import React, { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import { apiClient } from "@/lib/axios";
 
 export default function Login() {
   const [id, setId] = useState("");
@@ -12,21 +12,23 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     try {
-      const response = await axios.post("http://localhost:3001/login", {
-        id,
-        password,
-      });
+      const response = await apiClient.login(id, password);
 
-      if (response.status === 200) {
-        router.push("/top");
+      if (response.data.redirectTo) {
+        // 画面遷移前に少し待機（状態の更新を確実にするため）
+        setTimeout(() => {
+          router.push(response.data.redirectTo);
+        }, 100);
       }
     } catch (error: any) {
-      if (error.response && error.response.status === 401) {
-        setErrorMessage("Invalid ID or password");
+      console.error('Login error:', error);
+      if (error.response?.status === 401) {
+        setErrorMessage("IDまたはパスワードが正しくありません");
       } else {
-        setErrorMessage("An error occurred. Please try again.");
+        setErrorMessage("エラーが発生しました。再度お試しください。");
       }
     }
   };
@@ -36,7 +38,9 @@ export default function Login() {
       {/* Left: Image */}
       <div className="w-1/2 h-screen hidden lg:block">
         <img
-          src="https://img.freepik.com/fotos-premium/imagen-fondo_910766-187.jpg?w=826"
+          src="/images/1.jpeg"
+          //src="/images/login_image.jpg"
+          // src="https://img.freepik.com/fotos-premium/imagen-fondo_910766-187.jpg?w=826"
           alt="Placeholder Image"
           className="object-cover w-full h-full"
         />
@@ -48,7 +52,7 @@ export default function Login() {
         <form onSubmit={handleLogin}>
           {/* ID Input */}
           <div className="mb-4">
-            <label htmlFor="username" className="block text-gray-600">
+            <label htmlFor="username" className="block text-gray-800">
               User ID
             </label>
             <input
@@ -97,4 +101,3 @@ export default function Login() {
     </div>
   );
 }
-
